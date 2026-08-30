@@ -1,0 +1,16 @@
+# Go
+server/server
+*.exe
+
+# iOS
+ios/.build/
+ios/.swiftpm/
+
+# IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Docker
+mariadb_data/
+redis_data/
