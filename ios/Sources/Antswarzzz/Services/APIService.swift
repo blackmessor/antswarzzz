@@ -2,7 +2,7 @@ import Foundation
 
 class APIService {
     static let shared = APIService()
-    var baseURL = "http://localhost:8080"
+    var baseURL = "http://10.0.0.31:8080"
 
     private let decoder: JSONDecoder = {
         let d = JSONDecoder()
