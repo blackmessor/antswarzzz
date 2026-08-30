@@ -1,0 +1,54 @@
+services:
+  mariadb:
+    image: mariadb:11.4
+    container_name: antswarzzz-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-antswarzzz_root_dev}
+      MARIADB_DATABASE: antswarzzz
+      MARIADB_USER: antswarzzz_app
+      MARIADB_PASSWORD: ${DB_APP_PASSWORD:-antswarzzz_app_dev}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: antswarzzz-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: antswarzzz-server
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: "3306"
+      DB_USER: antswarzzz_app
+      DB_PASSWORD: ${DB_APP_PASSWORD:-antswarzzz_app_dev}
+      DB_NAME: antswarzzz
+      PORT: "8080"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+volumes:
+  mariadb_data:
+  redis_data:
