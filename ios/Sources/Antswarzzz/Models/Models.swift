@@ -152,3 +152,26 @@ let antTypeNames: [Int: String] = [
 ]
 
 func antName(for id: Int) -> String { antTypeNames[id] ?? "Type \(id)" }
+
+
+// MARK: - Chamber image mapping
+
+func chamberImageName(buildingTypeID: Int, level: Int) -> String? {
+    // Determine tier from level
+    let tier: Int
+    if level >= 15 { tier = 15 }
+    else if level >= 10 { tier = 10 }
+    else if level >= 5 { tier = 5 }
+    else if level >= 1 { tier = 1 }
+    else { return nil } // level 0 = not built yet
+    
+    let names: [Int: String] = [
+        1: "mushroom_farm", 2: "food_warehouse", 3: "mat_warehouse",
+        4: "hatchery", 5: "solarium", 6: "lab", 7: "analysis_room",
+        8: "combat_room", 9: "barracks", 10: "dome",
+        11: "imperial_lodge", 12: "aphid_farm", 13: "mealybug_farm"
+    ]
+    
+    guard let name = names[buildingTypeID] else { return nil }
+    return String(format: "chamber_%02d_%@_lvl%d", buildingTypeID, name, tier)
+}

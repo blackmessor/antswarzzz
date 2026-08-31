@@ -141,6 +141,12 @@
 				B10000000006 /* Antswarzzz/Services/APIService.swift in Sources */,
 				B10000000007 /* Antswarzzz/ViewModels/DashboardViewModel.swift in Sources */,
 				B10000000008 /* Antswarzzz/Views/DashboardView.swift in Sources */,
+				C10000000001 /* LoginView.swift in Sources */,
+				C10000000002 /* MainTabView.swift in Sources */,
+				C10000000003 /* ColonyView.swift in Sources */,
+				C10000000004 /* BuildingListView.swift in Sources */,
+				C10000000005 /* BreedingListView.swift in Sources */,
+				C10000000006 /* DesignSystem.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

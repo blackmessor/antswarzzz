@@ -22,8 +22,9 @@ struct BuildingListView: View {
                 ScrollView {
                     VStack(spacing: 14) {
                         // Construction in progress
-                        if let c = constructing, let name = buildingName(for: c.buildingTypeID) {
-                            VStack(spacing: 8) {
+                        if let c = constructing {
+                        let name = buildingName(for: c.buildingTypeID)
+                        VStack(spacing: 8) {
                                 SectionHeader(icon: "hammer.fill", title: "En construction")
                                 HStack {
                                     VStack(alignment: .leading, spacing: 4) {

@@ -8,7 +8,7 @@ class APIService {
 
     func register(username: String) async throws -> RegisterResponse {
         let body: [String: Any] = ["username": username]
-        let data = try await post("/api/player/register", body: body)
+        let data = try await postData("/api/player/register", body: body)
         return try decoder.decode(RegisterResponse.self, from: data)
     }
 
@@ -23,13 +23,13 @@ class APIService {
             "workers_on_food": food,
             "workers_on_materials": materials
         ]
-        let data = try await post("/api/colony/\(colonyID)", body: body)
+        let data = try await postData("/api/colony/\(colonyID)", body: body)
         return try decoder.decode(ActionResponse.self, from: data)
     }
 
     func forceTick(colonyID: Int) async throws -> ActionResponse {
         let body: [String: Any] = ["colony_id": colonyID]
-        let data = try await post("/api/tick", body: body)
+        let data = try await postData("/api/tick", body: body)
         return try decoder.decode(ActionResponse.self, from: data)
     }
 
