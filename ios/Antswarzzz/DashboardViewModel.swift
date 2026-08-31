@@ -22,11 +22,15 @@ class DashboardViewModel: ObservableObject {
     func registerAndLoad(username: String) async {
         isLoading = true; error = nil
         do {
+            print("[VM] registerAndLoad: username=\(username)")
             let resp = try await api.register(username: username)
+            print("[VM] register succeeded: player=\(resp.playerID) colony=\(resp.colonyID)")
             colonyID = resp.colonyID
             await refresh()
+            print("[VM] refresh after register done, colony=\(colony?.name ?? "nil")")
         } catch {
-            self.error = "Erreur reseau: verifiez que le serveur tourne"
+            print("[VM] registerAndLoad ERROR: \(error)")
+            self.error = "Erreur: \(error.localizedDescription)"
         }
         isLoading = false
     }
@@ -34,6 +38,7 @@ class DashboardViewModel: ObservableObject {
     func refresh() async {
         guard colonyID > 0 else { return }
         do {
+            print("[VM] refresh colonyID=\(colonyID)")
             let state = try await api.getColony(colonyID)
             self.colony = state.colony
             self.buildings = state.buildings
@@ -44,8 +49,10 @@ class DashboardViewModel: ObservableObject {
             self.workersOnMaterials = Double(state.colony.workersOnMaterials)
             self.activeBreed = state.activeBreed
             self.error = nil
+            print("[VM] refresh done: buildings=\(state.buildings.count), ants=\(state.ants.count)")
         } catch {
-            self.error = "Erreur reseau"
+            print("[VM] refresh ERROR: \(error)")
+            self.error = "Erreur: \(error.localizedDescription)"
         }
     }
 
@@ -55,7 +62,7 @@ class DashboardViewModel: ObservableObject {
             _ = try await api.assignWorkers(colonyID: colonyID, food: Int(workersOnFood), materials: Int(workersOnMaterials))
             await refresh()
         } catch {
-            self.error = "Erreur reseau"
+            self.error = "Erreur: \(error.localizedDescription)"
         }
     }
 
@@ -65,7 +72,7 @@ class DashboardViewModel: ObservableObject {
             _ = try await api.post("/api/colony/\(colonyID)", body: body)
             await refresh()
         } catch {
-            self.error = "Erreur reseau"
+            self.error = "Erreur: \(error.localizedDescription)"
         }
     }
 
@@ -75,7 +82,7 @@ class DashboardViewModel: ObservableObject {
             _ = try await api.post("/api/breeding/\(colonyID)", body: body)
             await refresh()
         } catch {
-            self.error = "Erreur reseau"
+            self.error = "Erreur: \(error.localizedDescription)"
         }
     }
 
@@ -85,7 +92,7 @@ class DashboardViewModel: ObservableObject {
             _ = try await api.forceTick(colonyID: colonyID)
             await refresh()
         } catch {
-            self.error = "Erreur reseau"
+            self.error = "Erreur: \(error.localizedDescription)"
         }
     }
 
