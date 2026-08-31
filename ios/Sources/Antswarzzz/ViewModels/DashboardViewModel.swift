@@ -25,7 +25,9 @@ class DashboardViewModel: ObservableObject {
             let resp = try await api.register(username: username)
             colonyID = resp.colonyID
             await refresh()
-        } catch { self.error = "Inscription échouée: \\(error.localizedDescription)" }
+        } catch {
+            self.error = "Erreur reseau: verifiez que le serveur tourne"
+        }
         isLoading = false
     }
 
@@ -42,7 +44,9 @@ class DashboardViewModel: ObservableObject {
             self.workersOnMaterials = Double(state.colony.workersOnMaterials)
             self.activeBreed = state.activeBreed
             self.error = nil
-        } catch { self.error = "Chargement: \\(error.localizedDescription)" }
+        } catch {
+            self.error = "Erreur reseau"
+        }
     }
 
     func commitWorkers() async {
@@ -50,21 +54,29 @@ class DashboardViewModel: ObservableObject {
         do {
             _ = try await api.assignWorkers(colonyID: colonyID, food: Int(workersOnFood), materials: Int(workersOnMaterials))
             await refresh()
-        } catch { self.error = "Erreur: \\(error.localizedDescription)" }
+        } catch {
+            self.error = "Erreur reseau"
+        }
     }
 
     func upgradeBuilding(_ buildingTypeID: Int) async {
         do {
-            _ = try await api.post("/api/colony/\\(colonyID)", body: ["action": "upgrade_building", "building_type_id": buildingTypeID])
+            let body: [String: Any] = ["action": "upgrade_building", "building_type_id": buildingTypeID]
+            _ = try await api.post("/api/colony/\(colonyID)", body: body)
             await refresh()
-        } catch { self.error = "Construction: \\(error.localizedDescription)" }
+        } catch {
+            self.error = "Erreur reseau"
+        }
     }
 
     func queueBreed(_ antTypeID: Int) async {
         do {
-            _ = try await api.post("/api/breeding/\\(colonyID)", body: ["action": "queue", "ant_type_id": antTypeID])
+            let body: [String: Any] = ["action": "queue", "ant_type_id": antTypeID]
+            _ = try await api.post("/api/breeding/\(colonyID)", body: body)
             await refresh()
-        } catch { self.error = "Ponte: \\(error.localizedDescription)" }
+        } catch {
+            self.error = "Erreur reseau"
+        }
     }
 
     func tick() async {
@@ -72,7 +84,9 @@ class DashboardViewModel: ObservableObject {
         do {
             _ = try await api.forceTick(colonyID: colonyID)
             await refresh()
-        } catch { self.error = "Erreur tick: \\(error.localizedDescription)" }
+        } catch {
+            self.error = "Erreur reseau"
+        }
     }
 
     func startPolling() {
