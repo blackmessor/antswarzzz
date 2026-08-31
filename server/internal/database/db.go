@@ -302,6 +302,15 @@ func (db *DB) CreatePlayer(username string) (int64, error) {
 	return res.LastInsertId()
 }
 
+func (db *DB) GetPlayerID(username string) (int64, error) {
+	var id int64
+	err := db.QueryRow(`SELECT id FROM players WHERE username = ? LIMIT 1`, username).Scan(&id)
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+	return id, err
+}
+
 func (db *DB) GetPlayerColony(playerID int64) (int64, error) {
 	var colonyID int64
 	err := db.QueryRow(`SELECT id FROM colonies WHERE player_id = ? LIMIT 1`, playerID).Scan(&colonyID)

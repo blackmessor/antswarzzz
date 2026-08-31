@@ -54,14 +54,30 @@ func (h *Handler) registerPlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if player already exists
+	existingID, err := h.db.GetPlayerID(body.Username)
+	if err == nil && existingID > 0 {
+		colonyID, cerr := h.db.GetPlayerColony(existingID)
+		if cerr == nil && colonyID > 0 {
+			writeJSON(w, map[string]interface{}{
+				"player_id": existingID,
+				"colony_id": colonyID,
+				"username":  body.Username,
+			})
+			return
+		}
+	}
+
 	playerID, err := h.db.CreatePlayer(body.Username)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		writeJSON(w, map[string]string{"error": "failed to create player"})
 		return
 	}
 
 	colonyID, err := h.db.CreateColony(playerID, body.Username+"'s colony")
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		writeJSON(w, map[string]string{"error": "failed to create colony"})
 		return
 	}

@@ -4,20 +4,24 @@ class APIService {
     static let shared = APIService()
     var baseURL = "http://10.0.0.31:8080"
 
-    private let decoder: JSONDecoder = {
-        let d = JSONDecoder()
-        return d
-    }()
+    private let decoder = JSONDecoder()
 
     // MARK: - Public API
 
     func register(username: String) async throws -> RegisterResponse {
         let data = try await postData("/api/player/register", body: ["username": username])
+        // Server may return an error response (e.g. duplicate username) with HTTP 200
+        if let err = try? decoder.decode(ErrorResponse.self, from: data), err.error != nil {
+            throw APIError.server(err.error!)
+        }
         return try decoder.decode(RegisterResponse.self, from: data)
     }
 
     func getColony(_ id: Int) async throws -> ColonyStateResponse {
         let data = try await get("/api/colony/\(id)")
+        if let err = try? decoder.decode(ErrorResponse.self, from: data), err.error != nil {
+            throw APIError.server(err.error!)
+        }
         return try decoder.decode(ColonyStateResponse.self, from: data)
     }
 
@@ -49,10 +53,9 @@ class APIService {
         let (data, resp) = try await URLSession.shared.data(from: url)
         if let http = resp as? HTTPURLResponse {
             print("[API] GET \(path) → \(http.statusCode), \(data.count) bytes")
-            if http.statusCode != 200 {
+            guard http.statusCode == 200 else {
                 let body = String(data: data, encoding: .utf8) ?? ""
-                print("[API] GET error body: \(body)")
-                throw URLError(.badServerResponse)
+                throw APIError.http(http.statusCode, body)
             }
         }
         return data
@@ -68,12 +71,29 @@ class APIService {
         let (data, resp) = try await URLSession.shared.data(for: req)
         if let http = resp as? HTTPURLResponse {
             print("[API] POST \(path) → \(http.statusCode), \(data.count) bytes")
-            if http.statusCode != 200 {
+            guard http.statusCode == 200 else {
                 let bodyStr = String(data: data, encoding: .utf8) ?? ""
-                print("[API] POST error body: \(bodyStr)")
-                throw URLError(.badServerResponse)
+                throw APIError.http(http.statusCode, bodyStr)
             }
         }
         return data
+    }
+}
+
+// MARK: - Error response from server
+
+struct ErrorResponse: Codable {
+    let error: String?
+}
+
+enum APIError: LocalizedError {
+    case server(String)
+    case http(Int, String)
+
+    var errorDescription: String? {
+        switch self {
+        case .server(let msg): return msg
+        case .http(let code, let body): return "HTTP \(code): \(body)"
+        }
     }
 }
