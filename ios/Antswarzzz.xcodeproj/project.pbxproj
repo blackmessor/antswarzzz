@@ -11,13 +11,13 @@
 		B10000000005 /* Antswarzzz/Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000005 /* Antswarzzz/Models.swift */; };
 		B10000000006 /* Antswarzzz/APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000006 /* Antswarzzz/APIService.swift */; };
 		B10000000008 /* Antswarzzz/LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000008 /* Antswarzzz/LoginView.swift */; };
-		C10000000001 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000000001 /* LoginView.swift */; };
 		C10000000002 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000000002 /* MainTabView.swift */; };
 		C10000000003 /* ColonyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000000003 /* ColonyView.swift */; };
 		C10000000004 /* BuildingListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000000004 /* BuildingListView.swift */; };
 		C10000000005 /* BreedingListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000000005 /* BreedingListView.swift */; };
 		C10000000006 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D10000000006 /* DesignSystem.swift */; };
 		VM0000000001 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = VM0000000002 /* DashboardViewModel.swift */; };
+		RES00000001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000003 /* Antswarzzz/Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,7 +28,6 @@
 		A10000000005 /* Antswarzzz/Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Antswarzzz/Models.swift; sourceTree = "<group>"; };
 		A10000000006 /* Antswarzzz/APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Antswarzzz/APIService.swift; sourceTree = "<group>"; };
 		A10000000008 /* Antswarzzz/LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Antswarzzz/LoginView.swift; sourceTree = "<group>"; };
-		D10000000001 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Antswarzzz/LoginView.swift; sourceTree = "<group>"; };
 		D10000000002 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Antswarzzz/MainTabView.swift; sourceTree = "<group>"; };
 		D10000000003 /* ColonyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Antswarzzz/ColonyView.swift; sourceTree = "<group>"; };
 		D10000000004 /* BuildingListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Antswarzzz/BuildingListView.swift; sourceTree = "<group>"; };
@@ -61,7 +60,6 @@
 				A10000000005 /* Antswarzzz/Models.swift */,
 				A10000000006 /* Antswarzzz/APIService.swift */,
 				A10000000008 /* Antswarzzz/LoginView.swift */,
-				D10000000001 /* Antswarzzz/LoginView.swift */,
 				D10000000002 /* Antswarzzz/MainTabView.swift */,
 				D10000000003 /* Antswarzzz/ColonyView.swift */,
 				D10000000004 /* Antswarzzz/BuildingListView.swift */,
@@ -125,6 +123,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				RES00000001 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -139,7 +138,6 @@
 				B10000000005 /* Antswarzzz/Models.swift in Sources */,
 				B10000000006 /* Antswarzzz/APIService.swift in Sources */,
 				B10000000008 /* Antswarzzz/LoginView.swift in Sources */,
-				C10000000001 /* LoginView.swift in Sources */,
 				C10000000002 /* MainTabView.swift in Sources */,
 				C10000000003 /* ColonyView.swift in Sources */,
 				C10000000004 /* BuildingListView.swift in Sources */,
