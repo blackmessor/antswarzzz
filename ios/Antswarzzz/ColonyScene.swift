@@ -7,11 +7,11 @@ final class ColonyScene: SKScene {
 
     // MARK: - Configuration
 
-    private let tunnelWidth: CGFloat = 66
-    private let roomSize = CGSize(width: 168, height: 112)
-    private let verticalSpacing: CGFloat = 208
-    private let galleryAmplitude: CGFloat = 30
-    private let galleryWavelength: CGFloat = 400
+    private let tunnelWidth: CGFloat = 50
+    private let roomSize = CGSize(width: 140, height: 95)
+    private let verticalSpacing: CGFloat = 92
+    private let galleryAmplitude: CGFloat = 18
+    private let galleryWavelength: CGFloat = 300
     private let earthColor = SKColor(red: 0.17, green: 0.11, blue: 0.07, alpha: 1.0)   // #2B1B17
     private let tunnelColor = SKColor(red: 0.10, green: 0.06, blue: 0.03, alpha: 1.0)
 
@@ -55,15 +55,17 @@ final class ColonyScene: SKScene {
         camera = cameraNode
         addChild(cameraNode)
         cameraNode.position = .zero
-        cameraNode.setScale(0.78)
+        // Fit the whole colony (vertical span ≈ 1100, horizontal ≈ 340) on screen.
+        // Visible height = size.height / scale → 844 / 0.6 ≈ 1407 > 1100 → no scrolling.
+        cameraNode.setScale(0.60)
     }
 
     private func setupBackground() {
         let texture = SKTexture(imageNamed: "BackgroundEmpty")
         let bg = SKSpriteNode(texture: texture)
-        bg.size = CGSize(width: frame.width * 1.4, height: frame.height * 1.7)
+        bg.size = CGSize(width: 1300, height: 1800)
         bg.zPosition = -20
-        bg.position = CGPoint(x: 0, y: -80)
+        bg.position = CGPoint(x: 0, y: -40)
         addChild(bg)
     }
 
@@ -149,7 +151,7 @@ final class ColonyScene: SKScene {
 
         for i in 1...13 {
             let side: CGFloat = (i % 2 == 0) ? 1 : -1
-            let y = 900 - CGFloat(i - 1) * verticalSpacing
+            let y = 550 - CGFloat(i - 1) * verticalSpacing
             let gx = galleryX(atY: y)
             let slotX = gx + side * (tunnelWidth / 2 + roomSize.width / 2 + 6)
 
