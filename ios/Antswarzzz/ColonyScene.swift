@@ -41,8 +41,8 @@ final class ColonyScene: SKScene {
 
     private var earthNode: SKShapeNode!
     private var cameraNode: SKCameraNode!
-    private var roomsContainer: SKNode!
-    private var tunnelContainer: SKNode!
+    private var roomsContainer: SKNode?
+    private var tunnelContainer: SKNode?
 
     /// Room slot → its SpriteKit node (keyed by building_type_id)
     private var roomNodes: [Int: SKNode] = [:]
@@ -57,6 +57,9 @@ final class ColonyScene: SKScene {
         setupEarth()
         setupTunnel()
         setupRoomSlots()
+
+        // Rooms may have been pushed before didMove — apply now
+        updateRoomNodes()
     }
 
     // MARK: - Setup
@@ -78,9 +81,10 @@ final class ColonyScene: SKScene {
     }
 
     private func setupTunnel() {
-        tunnelContainer = SKNode()
-        tunnelContainer.zPosition = -5
-        addChild(tunnelContainer)
+        let container = SKNode()
+        container.zPosition = -5
+        addChild(container)
+        tunnelContainer = container
 
         // Draw vertical tunnel — a dark rectangle in the center
         let tunnel = SKShapeNode(rect: CGRect(
@@ -92,7 +96,7 @@ final class ColonyScene: SKScene {
         tunnel.fillColor = tunnelColor
         tunnel.strokeColor = SKColor(red: 0.25, green: 0.15, blue: 0.08, alpha: 1.0)
         tunnel.lineWidth = 2
-        tunnelContainer.addChild(tunnel)
+        container.addChild(tunnel)
 
         // Tunnel wall texture lines
         for i in stride(from: -1550, through: 1550, by: 60) {
@@ -103,7 +107,7 @@ final class ColonyScene: SKScene {
             line.path = path
             line.strokeColor = SKColor(red: 0.3, green: 0.18, blue: 0.1, alpha: 0.5)
             line.lineWidth = 1
-            tunnelContainer.addChild(line)
+            container.addChild(line)
 
             let lineR = SKShapeNode()
             let pathR = CGMutablePath()
@@ -112,14 +116,15 @@ final class ColonyScene: SKScene {
             lineR.path = pathR
             lineR.strokeColor = SKColor(red: 0.3, green: 0.18, blue: 0.1, alpha: 0.5)
             lineR.lineWidth = 1
-            tunnelContainer.addChild(lineR)
+            container.addChild(lineR)
         }
     }
 
     private func setupRoomSlots() {
-        roomsContainer = SKNode()
-        roomsContainer.zPosition = 0
-        addChild(roomsContainer)
+        let rContainer = SKNode()
+        rContainer.zPosition = 0
+        addChild(rContainer)
+        roomsContainer = rContainer
 
         // Create 13 empty room slots — alternating left/right
         for i in 1...13 {
@@ -134,7 +139,7 @@ final class ColonyScene: SKScene {
             emptyNode.position = CGPoint(x: side * (tunnelWidth / 2 + roomBaseWidth / 2 + 10), y: y)
             emptyNode.name = "slot_\(i)"
             emptyNode.alpha = 0.4
-            roomsContainer.addChild(emptyNode)
+            rContainer.addChild(emptyNode)
 
             // Connector tunnel
             let connector = SKShapeNode(rect: CGRect(
@@ -146,13 +151,14 @@ final class ColonyScene: SKScene {
             connector.fillColor = tunnelColor
             connector.strokeColor = .clear
             connector.position = CGPoint(x: side * (tunnelWidth / 2), y: 0)
-            tunnelContainer.addChild(connector)
+            tunnelContainer?.addChild(connector)
         }
     }
 
     // MARK: - Room updates
 
     private func updateRoomNodes() {
+        guard let roomsContainer = roomsContainer else { return }
         for building in buildings {
             let slotName = "slot_\(building.buildingTypeID)"
             guard let slot = roomsContainer.childNode(withName: slotName) else { continue }
