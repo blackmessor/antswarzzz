@@ -235,12 +235,12 @@ func computeTick(colony *models.Colony, buildings []models.ColonyBuilding) model
 	}
 
 	// ── 3. Construction timers ──
+	// Remaining time is computed dynamically by GetColonyBuildings and expired
+	// constructions are completed on read (CompleteExpiredBuildings).
+	// Just surface any that hit zero here as a safety net for the tick path.
 	for _, b := range buildings {
-		if b.IsConstructing && b.ConstructionTimer > 0 {
-			newTimer := b.ConstructionTimer - models.TickIntervalSeconds
-			if newTimer <= 0 {
-				r.BuildingsDone = append(r.BuildingsDone, b.BuildingTypeID)
-			}
+		if b.IsConstructing && b.ConstructionTimer <= 0 {
+			r.BuildingsDone = append(r.BuildingsDone, b.BuildingTypeID)
 		}
 	}
 

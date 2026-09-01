@@ -169,6 +169,7 @@ CREATE TABLE IF NOT EXISTS colony_buildings (
     level               INT UNSIGNED     NOT NULL DEFAULT 0,
     is_constructing     TINYINT(1)       NOT NULL DEFAULT 0,
     construction_timer  INT UNSIGNED     NOT NULL DEFAULT 0,
+    construction_started_at DATETIME     NULL DEFAULT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uk_colony_building (colony_id, building_type_id),
     CONSTRAINT fk_cb_colony FOREIGN KEY (colony_id) REFERENCES colonies(id) ON DELETE CASCADE,

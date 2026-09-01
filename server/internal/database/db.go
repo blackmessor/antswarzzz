@@ -95,9 +95,15 @@ func (db *DB) UpdateWorkers(colonyID int64, food, materials int64) error {
 // ── Building operations ──
 
 func (db *DB) GetColonyBuildings(colonyID int64) ([]models.ColonyBuilding, error) {
+	// Complete any expired constructions first
+	db.CompleteExpiredBuildings(colonyID)
+
 	rows, err := db.Query(`
 		SELECT cb.id, cb.colony_id, cb.building_type_id, cb.level,
-		       cb.is_constructing, cb.construction_timer
+		       cb.is_constructing,
+		       CASE WHEN cb.is_constructing = 1 AND cb.construction_started_at IS NOT NULL
+		            THEN GREATEST(cb.construction_timer - TIMESTAMPDIFF(SECOND, cb.construction_started_at, NOW()), 0)
+		            ELSE cb.construction_timer END AS construction_timer
 		FROM colony_buildings cb
 		WHERE cb.colony_id = ?
 		ORDER BY cb.building_type_id
@@ -133,10 +139,10 @@ func (db *DB) StartBuilding(colonyID int64, buildingTypeID int, timer int64, cos
 		return fmt.Errorf("deduct materials: %w", err)
 	}
 
-	// Set constructing
+	// Set constructing — store full duration, record start timestamp
 	_, err = tx.Exec(`
 		UPDATE colony_buildings 
-		SET is_constructing = 1, construction_timer = ?
+		SET is_constructing = 1, construction_timer = ?, construction_started_at = NOW()
 		WHERE colony_id = ? AND building_type_id = ?
 	`, timer, colonyID, buildingTypeID)
 	if err != nil {
@@ -144,6 +150,22 @@ func (db *DB) StartBuilding(colonyID int64, buildingTypeID int, timer int64, cos
 	}
 
 	return tx.Commit()
+}
+
+// CompleteExpiredBuildings finishes any construction whose time has elapsed.
+// Called on every read so timers resolve in real time, independent of the tick engine.
+func (db *DB) CompleteExpiredBuildings(colonyID int64) {
+	_, err := db.Exec(`
+		UPDATE colony_buildings
+		SET level = level + 1, is_constructing = 0, construction_timer = 0
+		WHERE colony_id = ?
+		  AND is_constructing = 1
+		  AND construction_started_at IS NOT NULL
+		  AND construction_timer <= TIMESTAMPDIFF(SECOND, construction_started_at, NOW())
+	`, colonyID)
+	if err != nil {
+		log.Printf("[db] CompleteExpiredBuildings error: %v", err)
+	}
 }
 
 // ── Tick operations ──
