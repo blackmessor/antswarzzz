@@ -2,21 +2,23 @@ import SwiftUI
 
 struct BreedingListView: View {
     @ObservedObject var vm: DashboardViewModel
-    
+
     var activeBreed: ActiveBreedInfo? { vm.activeBreed }
-    
-    let antTypes: [(id: Int, name: String, abbr: String, cost: Int, time: Int)] = [
-        (0, "Ouvrière", "Wrk", 5, 60),
-        (1, "Jeune Soldate Naine", "JSN", 10, 300),
-        (2, "Soldate Naine", "SN", 14, 450),
-        (4, "Jeune Soldate", "JS", 16, 740),
-        (5, "Soldate", "S", 22, 1000),
-        (7, "Concierge", "C", 30, 1410),
-        (9, "Artilleuse", "A", 28, 1440),
-        (11, "Tank", "Tk", 45, 1860),
-        (13, "Tueuse", "Tu", 60, 2740),
+
+    // All breedable ant types (elite forms come via evolution)
+    private let antTypes: [AntBreedOption] = [
+        AntBreedOption(id: 0, name: "Ouvrière", abbr: "Wrk", cost: 5, time: 60),
+        AntBreedOption(id: 1, name: "Jeune Soldate Naine", abbr: "JSN", cost: 10, time: 300),
+        AntBreedOption(id: 2, name: "Soldate Naine", abbr: "SN", cost: 14, time: 450),
+        AntBreedOption(id: 4, name: "Jeune Soldate", abbr: "JS", cost: 16, time: 740),
+        AntBreedOption(id: 5, name: "Soldate", abbr: "S", cost: 22, time: 1000),
+        AntBreedOption(id: 7, name: "Concierge", abbr: "C", cost: 30, time: 1410),
+        AntBreedOption(id: 9, name: "Artilleuse", abbr: "A", cost: 28, time: 1440),
+        AntBreedOption(id: 10, name: "Artilleuse d'Élite", abbr: "AE", cost: 35, time: 1520),
+        AntBreedOption(id: 11, name: "Tank", abbr: "Tk", cost: 45, time: 1860),
+        AntBreedOption(id: 13, name: "Tueuse", abbr: "Tu", cost: 60, time: 2740),
     ]
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -30,7 +32,7 @@ struct BreedingListView: View {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(antName(for: ab.antTypeID)).font(.headline).foregroundStyle(Color.antText)
-                                        Text("Position \\(ab.queuePosition) dans la file")
+                                        Text("Position \(ab.queuePosition) dans la file")
                                             .font(.caption).foregroundStyle(Color.antMuted)
                                     }
                                     Spacer()
@@ -42,17 +44,17 @@ struct BreedingListView: View {
                             }
                             .antCard()
                         }
-                        
+
                         // My ants
                         if !vm.ants.isEmpty {
-                            SectionHeader(icon: "ant.fill", title: "Peuple — \\(vm.workerCount) ouvrières, \\(vm.militaryCount) militaires")
+                            SectionHeader(icon: "ant.fill", title: "Peuple — \(vm.workerCount) ouvrières, \(vm.militaryCount) militaires")
                             ForEach(vm.ants.filter { $0.count > 0 }) { a in
                                 HStack(spacing: 10) {
                                     Text(antName(for: a.antTypeID)).font(.subheadline).foregroundStyle(Color.antText)
                                     Spacer()
-                                    Text("\\(a.count)").font(.subheadline.monospacedDigit().bold()).foregroundStyle(Color.antAccent)
+                                    Text("\(a.count)").font(.subheadline.monospacedDigit().bold()).foregroundStyle(Color.antAccent)
                                     if a.cumulativeXP > 0 {
-                                        Text("⭐\\(a.cumulativeXP)").font(.caption2).foregroundStyle(Color.antGold)
+                                        Text("⭐\(a.cumulativeXP)").font(.caption2).foregroundStyle(Color.antGold)
                                     }
                                 }
                                 .padding(.horizontal, 14).padding(.vertical, 8)
@@ -61,14 +63,14 @@ struct BreedingListView: View {
                             }
                             .padding(.horizontal)
                         }
-                        
+
                         // Breedable ants list
                         SectionHeader(icon: "plus.circle.fill", title: "Lancer une ponte")
-                        ForEach(antTypes, id: \.id) { ant in
+                        ForEach(antTypes) { ant in
                             HStack(spacing: 10) {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(ant.name).font(.subheadline.bold()).foregroundStyle(Color.antText)
-                                    Text("\\(ant.abbr) · Coût: \\(ant.foodCost) nourr. · \\(formatTime(ant.time))")
+                                    Text("\(ant.abbr) · Coût: \(ant.cost) nourr. · \(formatTime(ant.time))")
                                         .font(.caption2).foregroundStyle(Color.antMuted)
                                 }
                                 Spacer()
@@ -95,11 +97,21 @@ struct BreedingListView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
     }
-    
+
     func formatTime(_ secs: Int) -> String {
         if secs <= 0 { return "Terminé" }
-        if secs >= 3600 { return "\\(secs / 3600)h\\((secs % 3600) / 60)m" }
+        if secs >= 3600 { return "\(secs / 3600)h\((secs % 3600) / 60)m" }
         let m = secs / 60; let s = secs % 60
-        return "\\(m)m\\(s)s"
+        return "\(m)m\(s)s"
     }
+}
+
+// MARK: - Model
+
+struct AntBreedOption: Identifiable {
+    let id: Int
+    let name: String
+    let abbr: String
+    let cost: Int
+    let time: Int
 }

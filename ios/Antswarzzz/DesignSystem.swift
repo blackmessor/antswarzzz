@@ -39,7 +39,7 @@ struct ResourceBar: View {
         HStack(spacing: 12) {
             ResourcePill(icon: "leaf.fill", value: food.formatted(), color: Color.antGreen)
             ResourcePill(icon: "cube.fill", value: materials.formatted(), color: Color.antGold)
-            ResourcePill(icon: "map.fill", value: "\\(tdc) cm²", color: Color.antOrange)
+            ResourcePill(icon: "map.fill", value: "\(tdc) cm²", color: Color.antOrange)
         }
         .padding(.horizontal)
         .padding(.vertical, 8)

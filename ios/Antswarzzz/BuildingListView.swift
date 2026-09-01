@@ -29,7 +29,7 @@ struct BuildingListView: View {
                                 HStack {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(name).font(.headline).foregroundStyle(Color.antText)
-                                        Text("Passage au niv. \\(c.level + 1)")
+                                        Text("Passage au niv. \(c.level + 1)")
                                             .font(.caption).foregroundStyle(Color.antMuted)
                                     }
                                     Spacer()
@@ -43,7 +43,7 @@ struct BuildingListView: View {
                         }
                         
                         // Buildings list
-                        SectionHeader(icon: "building.2.fill", title: "\\(vm.buildings.count) salles")
+                        SectionHeader(icon: "building.2.fill", title: "\(vm.buildings.count) salles")
                         ForEach(sortedBuildings) { b in
                             BuildingRow(building: b) {
                                 selectedBuilding = b.buildingTypeID
@@ -76,7 +76,7 @@ struct BuildingRow: View {
     let onUpgrade: () -> Void
     @State private var showUpgrade = false
     
-    var name: String { buildingName(for: building.buildingTypeID) ?? "Salle \\(building.buildingTypeID)" }
+    var name: String { buildingName(for: building.buildingTypeID) ?? "Salle \(building.buildingTypeID)" }
     var levelTier: String {
         if building.level >= 15 { return "T4" }
         if building.level >= 10 { return "T3" }
@@ -100,7 +100,7 @@ struct BuildingRow: View {
                     Circle()
                         .fill(tierColor.opacity(0.2))
                         .frame(width: 40, height: 40)
-                    Text("\\(building.level)")
+                    Text("\(building.level)")
                         .font(.caption.monospacedDigit().bold())
                         .foregroundStyle(tierColor)
                 }
@@ -108,7 +108,7 @@ struct BuildingRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(name).font(.subheadline.bold()).foregroundStyle(Color.antText)
                     if !levelTier.isEmpty {
-                        Text("Palier \\(levelTier)").font(.caption2).foregroundStyle(tierColor)
+                        Text("Palier \(levelTier)").font(.caption2).foregroundStyle(tierColor)
                     }
                     // Category badge
                     if let cat = buildingCategory(for: building.buildingTypeID) {
@@ -120,7 +120,7 @@ struct BuildingRow: View {
                     Button {
                         onUpgrade()
                     } label: {
-                        Text("\\(costForLevel(building))")
+                        Text("\(costForLevel(building))")
                             .font(.caption.monospacedDigit())
                             .padding(.horizontal, 10).padding(.vertical, 5)
                             .background(Color.antAccent.opacity(0.15))
@@ -138,9 +138,9 @@ struct BuildingRow: View {
     func costForLevel(_ b: ColonyBuilding) -> String {
         let lvl = b.level + 1
         let mats = Int64(2000) * Int64(1 << (lvl - 1))
-        if mats > 1_000_000 { return "\\(mats / 1_000_000)M" }
-        if mats > 1_000 { return "\\(mats / 1_000)k" }
-        return "\\(mats)"
+        if mats > 1_000_000 { return "\(mats / 1_000_000)M" }
+        if mats > 1_000 { return "\(mats / 1_000)k" }
+        return "\(mats)"
     }
     func buildingCategory(for id: Int) -> String? {
         switch id {

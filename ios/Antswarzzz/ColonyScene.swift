@@ -2,63 +2,40 @@ import SpriteKit
 import SwiftUI
 
 /// SpriteKit scene rendering the ant colony cross-section.
-/// Data-driven: reads buildings from a binding, creates/updates room nodes accordingly.
+/// Data-driven: reads buildings from a binding, loads the matching chamber image.
 final class ColonyScene: SKScene {
 
     // MARK: - Configuration
 
-    private let tunnelWidth: CGFloat = 60
-    private let roomBaseWidth: CGFloat = 140
-    private let roomBaseHeight: CGFloat = 100
-    private let verticalSpacing: CGFloat = 20
+    private let tunnelWidth: CGFloat = 80
+    private let roomSize = CGSize(width: 190, height: 130)
+    private let verticalSpacing: CGFloat = 210
     private let earthColor = SKColor(red: 0.17, green: 0.11, blue: 0.07, alpha: 1.0)   // #2B1B17
-    private let tunnelColor = SKColor(red: 0.12, green: 0.07, blue: 0.04, alpha: 1.0)
-    private let chamberEmptyColor = SKColor(red: 0.08, green: 0.05, blue: 0.03, alpha: 1.0)
-    private let roomColors: [Int: SKColor] = [
-        1:  SKColor(red: 0.40, green: 0.30, blue: 0.10, alpha: 1.0), // Champignonnière — amber
-        2:  SKColor(red: 0.55, green: 0.42, blue: 0.14, alpha: 1.0), // Entrepôt nourriture — gold
-        3:  SKColor(red: 0.45, green: 0.45, blue: 0.50, alpha: 1.0), // Entrepôt matériaux — grey
-        4:  SKColor(red: 0.60, green: 0.50, blue: 0.55, alpha: 1.0), // Couveuse — pink
-        5:  SKColor(red: 0.70, green: 0.60, blue: 0.20, alpha: 1.0), // Solarium — yellow
-        6:  SKColor(red: 0.30, green: 0.60, blue: 0.70, alpha: 1.0), // Labo — cyan
-        7:  SKColor(red: 0.50, green: 0.30, blue: 0.60, alpha: 1.0), // Salle d'analyse — purple
-        8:  SKColor(red: 0.80, green: 0.20, blue: 0.20, alpha: 1.0), // Salle de combat — red
-        9:  SKColor(red: 0.70, green: 0.35, blue: 0.15, alpha: 1.0), // Caserne — orange
-        10: SKColor(red: 0.20, green: 0.50, blue: 0.30, alpha: 1.0), // Dôme — green
-        11: SKColor(red: 0.70, green: 0.60, blue: 0.10, alpha: 1.0), // Loge Impériale — gold
-        12: SKColor(red: 0.60, green: 0.80, blue: 0.40, alpha: 1.0), // Étable pucerons — lime
-        13: SKColor(red: 0.50, green: 0.40, blue: 0.60, alpha: 1.0), // Étable cochenilles — violet
-    ]
 
     // MARK: - Data binding
 
-    /// Called by the view to push building state into the scene.
     var buildings: [ColonyBuilding] = [] {
         didSet { updateRoomNodes() }
     }
 
     // MARK: - Node containers
 
-    private var earthNode: SKShapeNode!
     private var cameraNode: SKCameraNode!
     private var roomsContainer: SKNode?
-    private var tunnelContainer: SKNode?
-
-    /// Room slot → its SpriteKit node (keyed by building_type_id)
+    private var backgroundNode: SKSpriteNode?
     private var roomNodes: [Int: SKNode] = [:]
+    private var didSetup = false
 
     // MARK: - Lifecycle
 
     override func didMove(to view: SKView) {
         backgroundColor = earthColor
         anchorPoint = CGPoint(x: 0.5, y: 0.5)
-
         setupCamera()
-        setupEarth()
+        setupBackground()
         setupTunnel()
         setupRoomSlots()
-
-        // Rooms may have been pushed before didMove — apply now
+        didSetup = true
         updateRoomNodes()
     }
 
@@ -69,55 +46,36 @@ final class ColonyScene: SKScene {
         camera = cameraNode
         addChild(cameraNode)
         cameraNode.position = .zero
+        cameraNode.setScale(0.8)
     }
 
-    private func setupEarth() {
-        // Large earth background rectangle
-        earthNode = SKShapeNode(rect: CGRect(x: -frame.width, y: -2000, width: frame.width * 2, height: 4000))
-        earthNode.fillColor = earthColor
-        earthNode.strokeColor = .clear
-        earthNode.zPosition = -10
-        addChild(earthNode)
+    private func setupBackground() {
+        // Use the generated empty-anthill background as the cross-section base
+        let texture = SKTexture(imageNamed: "BackgroundEmpty")
+        let bg = SKSpriteNode(texture: texture)
+        bg.size = CGSize(width: frame.width * 1.4, height: frame.height * 1.6)
+        bg.zPosition = -20
+        bg.position = CGPoint(x: 0, y: -80)
+        addChild(bg)
+        backgroundNode = bg
     }
 
     private func setupTunnel() {
         let container = SKNode()
-        container.zPosition = -5
+        container.zPosition = -10
         addChild(container)
-        tunnelContainer = container
 
-        // Draw vertical tunnel — a dark rectangle in the center
+        // Vertical gallery — dark tunnel in the center
         let tunnel = SKShapeNode(rect: CGRect(
             x: -tunnelWidth / 2,
             y: -1600,
             width: tunnelWidth,
             height: 3200
         ))
-        tunnel.fillColor = tunnelColor
+        tunnel.fillColor = SKColor(red: 0.10, green: 0.06, blue: 0.03, alpha: 1.0)
         tunnel.strokeColor = SKColor(red: 0.25, green: 0.15, blue: 0.08, alpha: 1.0)
         tunnel.lineWidth = 2
         container.addChild(tunnel)
-
-        // Tunnel wall texture lines
-        for i in stride(from: -1550, through: 1550, by: 60) {
-            let line = SKShapeNode()
-            let path = CGMutablePath()
-            path.move(to: CGPoint(x: -tunnelWidth / 2 - 5, y: CGFloat(i)))
-            path.addLine(to: CGPoint(x: -tunnelWidth / 2 + 5, y: CGFloat(i) + 3))
-            line.path = path
-            line.strokeColor = SKColor(red: 0.3, green: 0.18, blue: 0.1, alpha: 0.5)
-            line.lineWidth = 1
-            container.addChild(line)
-
-            let lineR = SKShapeNode()
-            let pathR = CGMutablePath()
-            pathR.move(to: CGPoint(x: tunnelWidth / 2 + 5, y: CGFloat(i)))
-            pathR.addLine(to: CGPoint(x: tunnelWidth / 2 - 5, y: CGFloat(i) + 3))
-            lineR.path = pathR
-            lineR.strokeColor = SKColor(red: 0.3, green: 0.18, blue: 0.1, alpha: 0.5)
-            lineR.lineWidth = 1
-            container.addChild(lineR)
-        }
     }
 
     private func setupRoomSlots() {
@@ -126,32 +84,32 @@ final class ColonyScene: SKScene {
         addChild(rContainer)
         roomsContainer = rContainer
 
-        // Create 13 empty room slots — alternating left/right
+        // 13 room slots — alternating left/right along the central gallery
         for i in 1...13 {
-            let side: CGFloat = (i % 2 == 0) ? 1 : -1  // alternate sides
-            let y = CGFloat(1200 - (i - 1) * 200)       // top to bottom
+            let side: CGFloat = (i % 2 == 0) ? 1 : -1
+            let y = 650 - CGFloat(i - 1) * verticalSpacing
 
-            // Empty chamber outline
-            let emptyNode = SKShapeNode(ellipseOf: CGSize(width: roomBaseWidth, height: roomBaseHeight))
-            emptyNode.fillColor = chamberEmptyColor
-            emptyNode.strokeColor = SKColor(red: 0.2, green: 0.12, blue: 0.06, alpha: 1.0)
-            emptyNode.lineWidth = 1.5
-            emptyNode.position = CGPoint(x: side * (tunnelWidth / 2 + roomBaseWidth / 2 + 10), y: y)
-            emptyNode.name = "slot_\(i)"
-            emptyNode.alpha = 0.4
-            rContainer.addChild(emptyNode)
+            // Empty chamber outline (dashed placeholder)
+            let slot = SKShapeNode(rectOf: roomSize, cornerRadius: 14)
+            slot.fillColor = SKColor(red: 0.08, green: 0.05, blue: 0.03, alpha: 0.6)
+            slot.strokeColor = SKColor(red: 0.35, green: 0.22, blue: 0.12, alpha: 0.5)
+            slot.lineWidth = 1.5
+            slot.position = CGPoint(x: side * (tunnelWidth / 2 + roomSize.width / 2 + 15), y: y)
+            slot.name = "slot_\(i)"
+            rContainer.addChild(slot)
 
-            // Connector tunnel
+            // Connector tunnel from gallery to the room
             let connector = SKShapeNode(rect: CGRect(
-                x: side > 0 ? 0 : -roomBaseWidth / 2 - 10,
-                y: y - 6,
-                width: roomBaseWidth / 2 + 10,
+                x: side > 0 ? 0 : -roomSize.width / 2 - 10,
+                y: -6,
+                width: roomSize.width / 2 + 10,
                 height: 12
             ))
-            connector.fillColor = tunnelColor
+            connector.fillColor = SKColor(red: 0.10, green: 0.06, blue: 0.03, alpha: 1.0)
             connector.strokeColor = .clear
             connector.position = CGPoint(x: side * (tunnelWidth / 2), y: 0)
-            tunnelContainer?.addChild(connector)
+            connector.zPosition = -5
+            rContainer.addChild(connector)
         }
     }
 
@@ -164,94 +122,49 @@ final class ColonyScene: SKScene {
             guard let slot = roomsContainer.childNode(withName: slotName) else { continue }
 
             if building.level > 0 {
-                // Room is built — show it
-                let color = roomColors[building.buildingTypeID] ?? .gray
-                let alpha: CGFloat = building.isConstructing ? 0.5 : 1.0
-
-                if let existing = roomNodes[building.buildingTypeID] {
-                    // Update existing node
-                    if let shape = existing as? SKShapeNode {
-                        shape.fillColor = color
-                        shape.alpha = alpha
-                    }
-                    // Update level decorations
-                    updateDecorations(for: existing, building: building)
-                } else {
-                    // Create new room node
-                    let room = SKShapeNode(ellipseOf: CGSize(width: roomBaseWidth, height: roomBaseHeight))
-                    room.fillColor = color
-                    room.strokeColor = SKColor.white.withAlphaComponent(0.2)
-                    room.lineWidth = 1.5
-                    room.position = slot.position
-                    room.zPosition = 1
-                    room.name = "room_\(building.buildingTypeID)"
-                    room.alpha = alpha
-                    roomsContainer.addChild(room)
-                    roomNodes[building.buildingTypeID] = room
+                // Room is built — load its chamber image for this level tier
+                if roomNodes[building.buildingTypeID] == nil {
+                    guard let imageName = chamberImageName(buildingTypeID: building.buildingTypeID,
+                                                           level: building.level) else { continue }
+                    let texture = SKTexture(imageNamed: imageName)
+                    let node = SKSpriteNode(texture: texture)
+                    node.size = roomSize
+                    node.position = slot.position
+                    node.zPosition = 1
+                    node.name = "room_\(building.buildingTypeID)"
+                    roomsContainer.addChild(node)
+                    roomNodes[building.buildingTypeID] = node
 
                     // Pop-in animation
-                    room.setScale(0.01)
-                    let scaleAction = SKAction.scale(to: 1.0, duration: 0.4)
+                    node.setScale(0.01)
+                    let scaleAction = SKAction.scale(to: 1.0, duration: 0.45)
                     scaleAction.timingMode = .easeOut
-                    room.run(scaleAction)
-
-                    // Initial decorations
-                    updateDecorations(for: room, building: building)
+                    node.run(scaleAction)
+                } else {
+                    // Room exists — refresh image if the tier changed
+                    if let node = roomNodes[building.buildingTypeID] as? SKSpriteNode,
+                       let imageName = chamberImageName(buildingTypeID: building.buildingTypeID,
+                                                        level: building.level) {
+                        let newTexture = SKTexture(imageNamed: imageName)
+                        if node.texture?.description != newTexture.description {
+                            node.texture = newTexture
+                            // Small pulse to show the upgrade
+                            let pulse = SKAction.sequence([
+                                SKAction.scale(to: 1.08, duration: 0.15),
+                                SKAction.scale(to: 1.0, duration: 0.2)
+                            ])
+                            node.run(pulse)
+                        }
+                    }
                 }
-                slot.alpha = 0 // hide empty slot
+                slot.alpha = 0 // hide empty placeholder
             } else {
-                // Room not built
-                if let existing = roomNodes[building.buildingTypeID] {
-                    existing.removeFromParent()
-                    roomNodes.removeValue(forKey: building.buildingTypeID)
+                // Not built — remove any room image, show the placeholder
+                if let node = roomNodes.removeValue(forKey: building.buildingTypeID) {
+                    node.removeFromParent()
                 }
-                slot.alpha = 0.4 // show empty slot
+                slot.alpha = 1
             }
         }
-    }
-
-    private func updateDecorations(for roomNode: SKNode, building: ColonyBuilding) {
-        // Remove old decoration children
-        roomNode.children.filter { $0.name?.hasPrefix("deco_") == true }.forEach { $0.removeFromParent() }
-
-        let level = building.level
-        let color = roomColors[building.buildingTypeID] ?? .gray
-
-        // Small dots/circles representing extra detail at higher levels
-        let decoCount: Int
-        if level >= 15 { decoCount = 12 }
-        else if level >= 10 { decoCount = 8 }
-        else if level >= 5 { decoCount = 5 }
-        else { decoCount = 2 }
-
-        for i in 0..<decoCount {
-            let angle = CGFloat.random(in: 0...(2 * .pi))
-            let radius = CGFloat.random(in: 15...(roomBaseHeight / 2 - 10))
-            let dot = SKShapeNode(circleOfRadius: CGFloat.random(in: 2...5))
-            dot.fillColor = color.withAlphaComponent(0.6)
-            dot.strokeColor = .clear
-            dot.position = CGPoint(x: cos(angle) * radius, y: sin(angle) * radius)
-            dot.name = "deco_\(i)"
-            dot.zPosition = 2
-            roomNode.addChild(dot)
-        }
-
-        // Level label
-        if level > 0 {
-            let label = SKLabelNode(text: "Lv\(level)")
-            label.fontName = "Helvetica"
-            label.fontSize = 11
-            label.fontColor = SKColor(red: 0.87, green: 0.72, blue: 0.53, alpha: 1.0) // #DEB887
-            label.position = CGPoint(x: 0, y: -roomBaseHeight / 2 - 14)
-            label.name = "deco_label"
-            label.zPosition = 3
-            roomNode.addChild(label)
-        }
-    }
-
-    // MARK: - Touch handling (pan / zoom)
-
-    override func didChangeSize(_ oldSize: CGSize) {
-        cameraNode?.position = .zero
     }
 }
